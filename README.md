@@ -1,137 +1,121 @@
 # OYL Frutos Secos
 
-## Descripción del proyecto
+Aplicación móvil académica de gestión y venta de frutos secos, desarrollada en **Kotlin**, **Jetpack Compose** y **Material 3**. Incluye persistencia local mediante **Room/SQLite** y un backend de demostración construido con **Java y Spring Boot**.
 
-**OYL Frutos Secos** es una aplicación móvil Android desarrollada con
-**Kotlin**, **Android Studio**, **Jetpack Compose** y **Material 3**. Su
-objetivo es presentar un catálogo de frutos secos, permitir simular una
-compra y administrar las existencias de los productos desde una interfaz
-móvil.
+## Integrante
 
-## Integrantes
+- Benjamín Ignacio Pérez Pizarro
 
--   Benjamín Ignacio Pérez Pizarro
+## Funcionalidades
 
-## Tecnologías utilizadas
+El proyecto contempla **15 pantallas**: Bienvenida, Registro, Inicio de sesión, Dashboard, Mapa, Catálogo, Detalle de producto, Escáner QR, Carrito, Confirmación de pedido, Gestión de productos, Inventario, Pedidos, Notificaciones y Perfil.
 
--   **Kotlin:** lenguaje de programación.
--   **Android Studio:** entorno de desarrollo.
--   **Jetpack Compose:** creación de la interfaz de usuario mediante
-    funciones Kotlin.
--   **Material 3:** componentes visuales, como botones, campos de texto,
-    menús y navegación.
--   **Gradle:** configuración y construcción del proyecto.
+- **Usuarios:** registro, inicio de sesión y perfil con datos locales.
+- **Catálogo y carrito:** consulta de productos, cantidades y preparación de pedidos.
+- **Inventario:** administración de existencias y movimientos de stock.
+- **Persistencia:** almacenamiento de información local en Room/SQLite.
+- **Códigos QR:** lectura mediante Google Code Scanner, con consulta de productos.
+- **Mapa:** visualización referencial mediante OpenStreetMap en WebView.
+- **Notificaciones:** avisos locales en el dispositivo.
+- **Modo conectado opcional:** integración con una API Spring Boot para catálogo, pedidos y ajustes de stock, según la configuración de la aplicación.
 
-## Funcionalidades implementadas
+## Tecnologías
 
-### 1. Catálogo de productos
+| Área | Herramientas |
+| --- | --- |
+| Aplicación Android | Kotlin, Android Studio, Jetpack Compose, Material 3 |
+| Almacenamiento local | Room / SQLite |
+| Comunicación HTTP | Retrofit |
+| Lectura QR | Google Code Scanner |
+| Mapa | OpenStreetMap, WebView |
+| Backend | Java 17, Spring Boot 3.3.5, Spring Data JPA |
+| Base de datos del backend | H2 |
+| Construcción | Gradle para Android y Maven para backend |
 
--   Visualización de los productos disponibles.
--   Presentación de información del producto, como nombre, categoría,
-    precio y stock.
--   Opción para agregar productos al carrito.
--   Validaciones para evitar seleccionar unidades que superen las
-    existencias disponibles, según la lógica implementada.
+## Estructura del repositorio
 
-### 2. Carrito de compras
+```text
+OYLFrutosSecos/
+├── app/                    # Código fuente y recursos de Android
+├── backend-springboot/     # API REST en Java
+├── gradle/                 # Wrapper y catálogo de versiones
+├── build.gradle.kts
+├── settings.gradle.kts
+├── gradle.properties
+├── gradlew
+└── gradlew.bat
+```
 
--   Visualización de los productos seleccionados.
--   Revisión de las cantidades agregadas.
--   Cálculo del total de la compra a partir de los precios y las
-    cantidades.
--   Simulación de la confirmación de un pedido.
+## Requisitos
 
-### 3. Administración de inventario
+- Android Studio y Android SDK Platform 35.
+- **JDK 17** para el proyecto.
+- Teléfono Android o emulador para probar la aplicación.
+- Para el backend: Java 17 y Maven.
+- Conexión a internet para descargar las dependencias iniciales.
 
--   Selección de un producto mediante un menú desplegable.
--   Modificación de las existencias.
--   Validación de la cantidad ingresada para evitar valores negativos o
-    no válidos, según la lógica implementada.
+## Cómo ejecutar Android
 
-### 4. Interfaz y navegación
+1. Clona el repositorio o descárgalo desde **Code → Download ZIP**.
+2. Abre la **carpeta raíz** `OYLFrutosSecos` en Android Studio.
+3. Configura JDK 17 y sincroniza el proyecto con Gradle.
+4. Selecciona el módulo `app` y un teléfono o emulador.
+5. Pulsa **Run ▶**.
 
--   Navegación entre las secciones de catálogo, carrito y
-    administración.
--   Uso de componentes de Jetpack Compose y Material 3.
--   Actualización de la interfaz cuando cambian los estados de la
-    aplicación.
+También puedes intentar compilar un APK de depuración desde la carpeta raíz:
 
-## Alcance y limitaciones
-
-La versión actual funciona como una demostración local. Los datos se
-mantienen en memoria durante la ejecución y **no se garantiza que
-permanezcan guardados al cerrar la aplicación**. No se incluye una base
-de datos persistente, un servidor remoto ni procesamiento de pagos
-reales. La confirmación de compra es una simulación.
-
-## Requisitos previos
-
--   Android Studio instalado.
--   JDK compatible con la configuración de Gradle del proyecto; para la
-    configuración utilizada en este proyecto, se recomienda JDK 17.
--   Un dispositivo Android físico con depuración USB activada, o un
-    emulador configurado.
--   Conexión a Internet la primera vez que se descarguen las
-    dependencias de Gradle.
-
-## Pasos para ejecutar el proyecto
-
-### Opción A: Ejecutar en Android Studio
-
-1.  Abre Android Studio.
-2.  Selecciona **Open** y elige la carpeta raíz del proyecto
-    `OYLFrutosSecos`.
-3.  Espera a que termine la sincronización de Gradle.
-4.  Si Android Studio solicita instalar componentes o aceptar licencias,
-    sigue las instrucciones que muestra.
-5.  Selecciona un emulador Android o conecta un teléfono mediante USB.
-6.  Si utilizas un teléfono, activa las **Opciones de desarrollador** y
-    la **Depuración USB**. Desbloquea el dispositivo y acepta el aviso
-    de autorización cuando aparezca.
-7.  Selecciona el dispositivo en la lista de dispositivos de Android
-    Studio.
-8.  Pulsa el botón **Run ▶** para compilar, instalar e iniciar la
-    aplicación.
-
-### Opción B: Ejecutar desde la terminal
-
-Desde la carpeta raíz del proyecto, ejecuta:
-
-En Windows (PowerShell o CMD):
-
-``` bat
+```bat
 gradlew.bat assembleDebug
 ```
 
-Si la compilación termina correctamente, el APK de depuración
-normalmente se encuentra en:
+Si la compilación finaliza correctamente, el APK suele quedar en `app/build/outputs/apk/debug/app-debug.apk`.
 
-``` text
-app/build/outputs/apk/debug/app-debug.apk
+## Cómo ejecutar Spring Boot
+
+Desde la carpeta `backend-springboot`:
+
+```bash
+mvn spring-boot:run
 ```
 
-Puedes instalarlo en un dispositivo conectado con ADB, si Android SDK
-Platform-Tools está instalado y el dispositivo está autorizado:
+El servidor utiliza el **puerto 8080**. Desde el PC, prueba:
 
-``` bat
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+```text
+http://localhost:8080/api/products
 ```
 
-## Estructura principal del código
+El backend utiliza una base H2 local. No es necesario tener MySQL instalado para esta configuración.
 
--   `app/src/main/java/com/oyl/frutossecos/MainActivity.kt`: actividad
-    principal y código de la interfaz de la aplicación.
--   `app/src/main/java/com/oyl/frutossecos/ui/theme/`: archivos
-    relacionados con el tema visual, colores y tipografía.
+### Conectar el teléfono con el backend
 
-La ubicación exacta de los archivos puede variar según la estructura
-actual del proyecto.
+1. Inicia Spring Boot en el computador.
+2. Conecta el computador y el teléfono a la **misma red Wi-Fi**.
+3. En Windows, ejecuta `ipconfig` y anota la dirección IPv4 del computador.
+4. En el navegador del teléfono, prueba `http://IP_DEL_PC:8080/api/products`.
+5. En la aplicación, abre **Perfil**, escribe `http://IP_DEL_PC:8080/`, activa el modo servidor, guarda la configuración y utiliza **Probar conexión**.
 
-## Estado del proyecto
+En un emulador Android, normalmente se utiliza `http://10.0.2.2:8080/` para acceder al servidor del computador. En un teléfono físico no uses `localhost` como dirección del PC.
 
-Proyecto académico en desarrollo para practicar el desarrollo de
-aplicaciones móviles con Kotlin y Jetpack Compose.
+Consulta las instrucciones ampliadas en [CONEXION_ANDROID_SPRING_BOOT.md](CONEXION_ANDROID_SPRING_BOOT.md).
 
-------------------------------------------------------------------------
+## Alcance y limitaciones
 
-**OYL Frutos Secos**
+Este repositorio corresponde a un **proyecto académico en desarrollo**. Las funciones deben validarse en Android Studio y en un dispositivo real antes de considerarse completamente verificadas.
+
+- Los datos del modo local se almacenan en Room/SQLite; el backend mantiene sus propios datos en H2.
+- Los pedidos creados en modo local **no se sincronizan automáticamente** con el servidor.
+- El mapa presenta una ubicación de demostración, no una tienda real verificada.
+- Las notificaciones son **locales**; no hay integración con Firebase Cloud Messaging.
+- El backend de demostración no cuenta con un sistema completo de autenticación y autorización. Úsalo únicamente en una red privada de confianza.
+- No se implementan pagos reales ni se debe usar información personal sensible para las pruebas.
+
+## Documentación adicional
+
+- [LEEME_OYL.md](LEEME_OYL.md): pantallas y funcionamiento local.
+- [CONEXION_ANDROID_SPRING_BOOT.md](CONEXION_ANDROID_SPRING_BOOT.md): conexión entre Android y Spring Boot.
+- [QR_MAPA_NOTIFICACIONES.md](QR_MAPA_NOTIFICACIONES.md): QR, mapa y avisos.
+- [AVANCE_Y_PENDIENTES.md](AVANCE_Y_PENDIENTES.md): avances anteriores y tareas pendientes.
+
+---
+
+**OYL Frutos Secos — Proyecto académico Android y Spring Boot.**
