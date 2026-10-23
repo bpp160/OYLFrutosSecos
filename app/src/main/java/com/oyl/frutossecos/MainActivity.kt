@@ -32,8 +32,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material3.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -289,7 +287,7 @@ private enum class Screen(val title:String){WELCOME("Bienvenida"),REGISTER("Crea
 }
 @Composable private fun Heading(title:String,sub:String="") {Text(title,style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold,color=Green);if(sub.isNotBlank())Text(sub,color=Color.Gray)}
 @Composable private fun Pill(label:String,action:()->Unit){Button(onClick=action,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(18.dp)){Text(label)}}
-@Composable private fun Input(value:String,on:(String)->Unit,label:String,secret:Boolean=false,error:String?=null){OutlinedTextField(value=value,onValueChange=on,label={Text(label)},modifier=Modifier.fillMaxWidth(),singleLine=true,isError=error!=null,supportingText=if(error!=null){{Text("⚠ $error")}}else null,trailingIcon=if(error!=null){{Icon(Icons.Default.Warning,contentDescription="Error de validación")}}else null,visualTransformation=if(secret)PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None)}
+@Composable private fun Input(value:String,on:(String)->Unit,label:String,secret:Boolean=false,error:String?=null){OutlinedTextField(value=value,onValueChange=on,label={Text(label)},modifier=Modifier.fillMaxWidth(),singleLine=true,isError=error!=null,supportingText=if(error!=null){{Text("⚠ $error")}}else null,trailingIcon=if(error!=null){{Text("⚠",color=MaterialTheme.colorScheme.error)}}else null,visualTransformation=if(secret)PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None)}
 @Composable private fun Panel(content:@Composable ColumnScope.()->Unit){Card(Modifier.fillMaxWidth().padding(vertical=6.dp),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color.White)){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp),content=content)}}
 @Composable private fun Welcome(onLogin:()->Unit,onCatalog:()->Unit,onMap:()->Unit){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally){Text("🌿",style=MaterialTheme.typography.displayLarge);Text("OYL",style=MaterialTheme.typography.displayLarge,color=Green,fontWeight=FontWeight.Black);Text("FRUTOS SECOS",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold);Spacer(Modifier.height(20.dp));Text("Productos naturales más cerca de ti",textAlign=TextAlign.Center);Spacer(Modifier.height(28.dp));Panel{listOf("🥜 Catálogo actualizado","🛒 Pedidos online","📍 Retiros y despachos","🌱 Productos saludables").forEach{Text(it)}};Pill("Comenzar",onLogin);OutlinedButton(onClick=onLogin,modifier=Modifier.fillMaxWidth()){Text("Ya tengo una cuenta")};TextButton(onClick=onCatalog){Text("Ver catálogo de muestra")};TextButton(onClick=onMap){Text("Ubicación de tienda")}}}
 @Composable private fun Register(onBack:()->Unit,onSave:(String,String,String,String,String)->Unit){
