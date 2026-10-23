@@ -32,6 +32,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -128,7 +130,7 @@ class OylViewModel(private val dao:StoreDao,private val prefs:android.content.Sh
  val notices:StateFlow<List<NoticeRow>> = snapshotFlow { userId }.flatMapLatest { dao.notices(if(it>0) it else 0) }.stateIn(viewModelScope,SharingStarted.Eagerly,emptyList())
  init { viewModelScope.launch { if(dao.productCount()==0) initial.forEach {dao.saveProduct(it)} } }
  fun register(name:String,alias:String,pass:String,phone:String,address:String,done:(String)->Unit){
-  if(name.isBlank()||alias.isBlank()||pass.length<4){done("Completa los campos; contraseña mínima de 4 caracteres");return}
+  if(RegistrationValidator.validate(name,alias,pass,phone,address).isNotEmpty()){done("Revisa los datos del formulario");return}
   viewModelScope.launch { if(dao.client(alias)!=null){done("El alias ya existe");return@launch}
    try{dao.addClient(ClientRow(name=name,alias=alias,password=PasswordHash.create(pass),phone=phone,address=address));done("Cuenta creada. Inicia sesión")}
    catch(_:Exception){done("No se pudo crear el usuario")}
@@ -287,11 +289,39 @@ private enum class Screen(val title:String){WELCOME("Bienvenida"),REGISTER("Crea
 }
 @Composable private fun Heading(title:String,sub:String="") {Text(title,style=MaterialTheme.typography.headlineMedium,fontWeight=FontWeight.Bold,color=Green);if(sub.isNotBlank())Text(sub,color=Color.Gray)}
 @Composable private fun Pill(label:String,action:()->Unit){Button(onClick=action,modifier=Modifier.fillMaxWidth(),shape=RoundedCornerShape(18.dp)){Text(label)}}
-@Composable private fun Input(value:String,on:(String)->Unit,label:String,secret:Boolean=false){OutlinedTextField(value=value,onValueChange=on,label={Text(label)},modifier=Modifier.fillMaxWidth(),singleLine=true,visualTransformation=if(secret)PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None)}
+@Composable private fun Input(value:String,on:(String)->Unit,label:String,secret:Boolean=false,error:String?=null){OutlinedTextField(value=value,onValueChange=on,label={Text(label)},modifier=Modifier.fillMaxWidth(),singleLine=true,isError=error!=null,supportingText=if(error!=null){{Text("⚠ $error")}}else null,trailingIcon=if(error!=null){{Icon(Icons.Default.Warning,contentDescription="Error de validación")}}else null,visualTransformation=if(secret)PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None)}
 @Composable private fun Panel(content:@Composable ColumnScope.()->Unit){Card(Modifier.fillMaxWidth().padding(vertical=6.dp),shape=RoundedCornerShape(16.dp),colors=CardDefaults.cardColors(containerColor=Color.White)){Column(Modifier.padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp),content=content)}}
 @Composable private fun Welcome(onLogin:()->Unit,onCatalog:()->Unit,onMap:()->Unit){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.Center,horizontalAlignment=Alignment.CenterHorizontally){Text("🌿",style=MaterialTheme.typography.displayLarge);Text("OYL",style=MaterialTheme.typography.displayLarge,color=Green,fontWeight=FontWeight.Black);Text("FRUTOS SECOS",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold);Spacer(Modifier.height(20.dp));Text("Productos naturales más cerca de ti",textAlign=TextAlign.Center);Spacer(Modifier.height(28.dp));Panel{listOf("🥜 Catálogo actualizado","🛒 Pedidos online","📍 Retiros y despachos","🌱 Productos saludables").forEach{Text(it)}};Pill("Comenzar",onLogin);OutlinedButton(onClick=onLogin,modifier=Modifier.fillMaxWidth()){Text("Ya tengo una cuenta")};TextButton(onClick=onCatalog){Text("Ver catálogo de muestra")};TextButton(onClick=onMap){Text("Ubicación de tienda")}}}
-@Composable private fun Register(onBack:()->Unit,onSave:(String,String,String,String,String)->Unit){var name by remember{mutableStateOf("")};var alias by remember{mutableStateOf("")};var pass by remember{mutableStateOf("")};var phone by remember{mutableStateOf("")};var address by remember{mutableStateOf("")};Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(22.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){Heading("Crear cuenta","Registro de cliente");Input(name,{name=it},"Nombre completo");Input(alias,{alias=it},"Alias de acceso");Input(pass,{pass=it},"Contraseña",true);Input(phone,{phone=it},"Teléfono de prueba");Input(address,{address=it},"Dirección de prueba");Pill("Crear cuenta"){onSave(name,alias,pass,phone,address)};TextButton(onClick=onBack){Text("Volver a iniciar sesión")}}}
-@Composable private fun Login(onRegister:()->Unit,onLogin:(String,String,Boolean)->Unit){var admin by remember{mutableStateOf(false)};var alias by remember{mutableStateOf("")};var pass by remember{mutableStateOf("")};Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp),horizontalAlignment=Alignment.CenterHorizontally){Text("🌰",style=MaterialTheme.typography.displayLarge);Heading("Iniciar sesión");Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){FilterChip(admin.not(),onClick={admin=false},label={Text("Cliente")});FilterChip(admin,onClick={admin=true},label={Text("Administrador")})};Input(alias,{alias=it},"Alias");Input(pass,{pass=it},"Contraseña",true);Pill("Iniciar sesión"){onLogin(alias,pass,admin)};if(admin)Text("Demo: alias admin / contraseña admin123",color=Color.Gray);TextButton(onClick=onRegister){Text("¿No tienes cuenta? Regístrate")}}}
+@Composable private fun Register(onBack:()->Unit,onSave:(String,String,String,String,String)->Unit){
+ var name by remember{mutableStateOf("")};var alias by remember{mutableStateOf("")}
+ var pass by remember{mutableStateOf("")};var phone by remember{mutableStateOf("")}
+ var address by remember{mutableStateOf("")};var submitted by remember{mutableStateOf(false)}
+ val errors=if(submitted)RegistrationValidator.validate(name,alias,pass,phone,address) else emptyMap()
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(22.dp),verticalArrangement=Arrangement.spacedBy(10.dp)){
+  Heading("Crear cuenta","Registro de cliente")
+  Input(name,{name=it},"Nombre completo",error=errors["name"])
+  Input(alias,{alias=it},"Alias de acceso",error=errors["alias"])
+  Input(pass,{pass=it},"Contraseña",secret=true,error=errors["password"])
+  Input(phone,{phone=it},"Teléfono",error=errors["phone"])
+  Input(address,{address=it},"Dirección",error=errors["address"])
+  Pill("Crear cuenta"){submitted=true;if(RegistrationValidator.validate(name,alias,pass,phone,address).isEmpty())onSave(name.trim(),alias.trim(),pass,phone.trim(),address.trim())}
+  TextButton(onClick=onBack){Text("Volver a iniciar sesión")}
+ }
+}
+@Composable private fun Login(onRegister:()->Unit,onLogin:(String,String,Boolean)->Unit){
+ var admin by remember{mutableStateOf(false)};var alias by remember{mutableStateOf("")}
+ var pass by remember{mutableStateOf("")};var submitted by remember{mutableStateOf(false)}
+ val errors=if(submitted)RegistrationValidator.validateLogin(alias,pass) else emptyMap()
+ Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp),horizontalAlignment=Alignment.CenterHorizontally){
+  Text("🌰",style=MaterialTheme.typography.displayLarge);Heading("Iniciar sesión")
+  Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){FilterChip(!admin,onClick={admin=false},label={Text("Cliente")});FilterChip(admin,onClick={admin=true},label={Text("Administrador")})}
+  Input(alias,{alias=it},"Alias",error=errors["alias"])
+  Input(pass,{pass=it},"Contraseña",secret=true,error=errors["password"])
+  Pill("Iniciar sesión"){submitted=true;if(RegistrationValidator.validateLogin(alias,pass).isEmpty())onLogin(alias.trim(),pass,admin)}
+  if(admin)Text("Demo: alias admin / contraseña admin123",color=Color.Gray)
+  TextButton(onClick=onRegister){Text("¿No tienes cuenta? Regístrate")}
+ }
+}
 @Composable private fun Dashboard(vm:OylViewModel,products:List<ProductRow>,cart:List<CartRow>,orders:List<OrderRow>,onGo:(Screen)->Unit){LazyColumn(Modifier.fillMaxSize().padding(16.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){item{Heading("¡Hola, ${vm.userName}!","Qué bueno verte de nuevo")};item{Panel{Text("🌰 Compra saludable, vida mejor",fontWeight=FontWeight.Bold,color=Green);Text("Frutos secos, semillas y deshidratados para ti")}};item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Quick("🥜","Catálogo",Modifier.weight(1f)){onGo(Screen.CATALOG)};Quick("📍","Mapa",Modifier.weight(1f)){onGo(Screen.MAP)}}};item{Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Quick("📦","Pedidos",Modifier.weight(1f)){onGo(Screen.ORDERS)};Quick("🔔","Avisos",Modifier.weight(1f)){onGo(Screen.NOTICES)}}};if(vm.isAdmin){item{Panel{Text("Panel administrador",fontWeight=FontWeight.Bold);Text("${products.count{it.stock<10}} productos con stock bajo · ${orders.count{it.status.startsWith("Pendiente")}} pedidos pendientes");Pill("Gestionar productos"){onGo(Screen.MANAGE)};Pill("Gestionar inventario"){onGo(Screen.INVENTORY)}}}}else{item{Panel{Text("Carrito: ${cart.sumOf{it.quantity}} artículos");Pill("Ir a mi carrito"){onGo(Screen.CART)}}}};item{Heading("Productos destacados")};items(products.take(4)){ProductCard(it,onOpen={onGo(Screen.CATALOG)},onAdd={onGo(Screen.CATALOG)})}}}
 @Composable private fun Quick(icon:String,title:String,modifier:Modifier=Modifier,onClick:()->Unit){Card(onClick=onClick,modifier=modifier.height(90.dp),colors=CardDefaults.cardColors(containerColor=Color.White)){Column(Modifier.fillMaxSize(),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center){Text(icon,style=MaterialTheme.typography.headlineSmall);Text(title,fontWeight=FontWeight.SemiBold)}}}
 @Composable private fun ProductCard(p:ProductRow,onOpen:()->Unit,onAdd:()->Unit){Panel{Row(verticalAlignment=Alignment.CenterVertically){ProductPhoto(p,56);Spacer(Modifier.width(14.dp));Column(Modifier.weight(1f)){Text(p.name,fontWeight=FontWeight.Bold);Text("${p.grams} g · ${p.category}",style=MaterialTheme.typography.bodySmall);Text(money(p.price),color=Green,fontWeight=FontWeight.Bold);Text("Stock: ${p.stock}",style=MaterialTheme.typography.labelSmall)};TextButton(onClick=onOpen){Text("Ver")};FilledIconButton(onClick=onAdd){Text("+")}}}}
